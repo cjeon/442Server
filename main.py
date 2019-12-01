@@ -38,25 +38,21 @@ data_b = read_from_file("data_group_b")
 
 
 def fft_to_amplitude_band(fft: list):
-    # resolution = 1024
-    # fft_resolution = 4096
-    result = []  # size of resolution
-    # avg = 0
-    # for i in range(0, resolution - 1):
-    #     accum = 0
-    #
-    #     for j in range(0, int(fft_resolution / resolution) - 1, 2):
-    #         accum += (math.sqrt(math.pow(fft[i * j], 2) + math.pow(fft[i * j + 1], 2)))
-    #
-    #     accum /= resolution
-    #     # result[i] = accum
-    #     result.append(accum)
-    # #     avg += accum
-    # #
-    # # avg /= resolution
+    result = []
 
     for i in range(0, len(fft), 2):
         result.append(math.sqrt(math.pow(fft[i], 2)) + math.pow(fft[i + 1], 2))
+
+    return np.array(list(map(np.float128, result)))
+
+
+def fft_to_phase_band(fft: list):
+    result = []
+
+    for i in range(0, len(fft), 2):
+        # Phase = arctan(Imaginary(F)/Real(F))
+        # https://stackoverflow.com/questions/6393257/getting-fourier-transform-from-phase-and-magnitude-matlab
+        result.append(math.atan2(fft[i+1], fft[i]))
 
     return np.array(list(map(np.float128, result)))
 
