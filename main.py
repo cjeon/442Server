@@ -1,15 +1,11 @@
 import numpy as np
 import math
-from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import classification_report
-from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 from sklearn.neural_network import MLPClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.neighbors import KNeighborsClassifier
+
 
 def read_from_file(filename: str):
     data_file = open(filename, "r")
@@ -33,10 +29,6 @@ def read_from_file(filename: str):
     return data
 
 
-data_a = read_from_file("data_group_a")
-data_b = read_from_file("data_group_b")
-
-
 def fft_to_amplitude_band(fft: list):
     result = []
 
@@ -57,103 +49,106 @@ def fft_to_phase_band(fft: list):
     return np.array(list(map(np.float128, result)))
 
 
-amplitude_a = list(map(fft_to_amplitude_band, data_a))
-amplitude_b = list(map(fft_to_amplitude_band, data_b))
-
-
 def euclidean_distance(x: np.array, y: np.array):
     return np.linalg.norm(x - y)
 
 
-# for item in amplitude_a: plt.plot(item)
-# plt.xlabel("Relative Frequency")
-# plt.ylabel("Relative Amplitude")
-# plt.title("Without a reflector")
-# # plt.savefig("fig1.png")
-# plt.show()
-# for item in amplitude_b: plt.plot(item)
-# plt.xlabel("Relative Frequency")
-# plt.ylabel("Relative Amplitude")
-# plt.title("With a reflector")
-# # plt.savefig("fig2.png")
-# plt.show()
+if __name__ == "__main__":
+    data_a = read_from_file("data_group_a")
+    data_b = read_from_file("data_group_b")
 
-# ------- Reflector existence test start --------
+    amplitude_a = list(map(fft_to_amplitude_band, data_a))
+    amplitude_b = list(map(fft_to_amplitude_band, data_b))
 
-X = amplitude_a + amplitude_b
-Y = ["With reflector"] * len(amplitude_a) + ["Without reflector"] * len(amplitude_b)
-trainX, testX, trainY, testY = train_test_split(X, Y, shuffle=True, test_size=0.3)
+    # for item in amplitude_a: plt.plot(item)
+    # plt.xlabel("Relative Frequency")
+    # plt.ylabel("Relative Amplitude")
+    # plt.title("Without a reflector")
+    # # plt.savefig("fig1.png")
+    # plt.show()
+    # for item in amplitude_b: plt.plot(item)
+    # plt.xlabel("Relative Frequency")
+    # plt.ylabel("Relative Amplitude")
+    # plt.title("With a reflector")
+    # # plt.savefig("fig2.png")
+    # plt.show()
 
-model = GaussianNB()
-model.fit(trainX, trainY)
-predY = model.predict(testX)
+    # ------- Reflector existence test start --------
 
-print(classification_report(testY, predY))
+    X = amplitude_a + amplitude_b
+    Y = ["With reflector"] * len(amplitude_a) + ["Without reflector"] * len(amplitude_b)
+    trainX, testX, trainY, testY = train_test_split(X, Y, shuffle=True, test_size=0.3)
 
-# ------- Reflector existence test end --------
+    model = GaussianNB()
+    model.fit(trainX, trainY)
+    predY = model.predict(testX)
 
-# ------- Strong distance test --------
-strong_close = read_from_file("strong_close")
-strong_mid = read_from_file("strong_mid")
-strong_far = read_from_file("strong_far")
+    print(classification_report(testY, predY))
 
-amp_strong_close = list(map(fft_to_amplitude_band, strong_close))
-amp_strong_mid = list(map(fft_to_amplitude_band, strong_mid))
-amp_strong_far = list(map(fft_to_amplitude_band, strong_far))
+    # ------- Reflector existence test end --------
 
-# for item in amp_strong_close: plt.plot(item)
-# plt.show()
-# for item in amp_strong_mid: plt.plot(item)
-# plt.show()
-# for item in amp_strong_far: plt.plot(item)
-# plt.show()
+    # ------- Strong distance test --------
+    strong_close = read_from_file("strong_close")
+    strong_mid = read_from_file("strong_mid")
+    strong_far = read_from_file("strong_far")
 
-X = amp_strong_close + amp_strong_mid + amp_strong_far
-Y = ["close"] * len(amp_strong_close) + ["mid"] * len(amp_strong_mid) + ["far"] * len(amp_strong_far)
+    amp_strong_close = list(map(fft_to_amplitude_band, strong_close))
+    amp_strong_mid = list(map(fft_to_amplitude_band, strong_mid))
+    amp_strong_far = list(map(fft_to_amplitude_band, strong_far))
 
-trainX, testX, trainY, testY = train_test_split(X, Y, shuffle=True, test_size=0.3)
+    # for item in amp_strong_close: plt.plot(item)
+    # plt.show()
+    # for item in amp_strong_mid: plt.plot(item)
+    # plt.show()
+    # for item in amp_strong_far: plt.plot(item)
+    # plt.show()
 
-pca = PCA(50)
-trainX = pca.fit_transform(trainX)
-testX = pca.transform(testX)
+    X = amp_strong_close + amp_strong_mid + amp_strong_far
+    Y = ["close"] * len(amp_strong_close) + ["mid"] * len(amp_strong_mid) + ["far"] * len(amp_strong_far)
 
-model = MLPClassifier(solver="lbfgs", max_iter=3000)
-model.fit(trainX, trainY)
-predY = model.predict(testX)
+    trainX, testX, trainY, testY = train_test_split(X, Y, shuffle=True, test_size=0.3)
 
-print(classification_report(testY, predY))
-# ------- Strong distance test end --------
+    pca = PCA(50)
+    trainX = pca.fit_transform(trainX)
+    testX = pca.transform(testX)
 
-# ------- Strong distance test --------
-weak_close = read_from_file("weak_close")
-weak_mid = read_from_file("weak_mid")
-weak_far = read_from_file("weak_far")
+    model = MLPClassifier(solver="lbfgs", max_iter=3000)
+    model.fit(trainX, trainY)
+    predY = model.predict(testX)
 
-amp_weak_close = list(map(fft_to_amplitude_band, weak_close))
-amp_weak_mid = list(map(fft_to_amplitude_band, weak_mid))
-amp_weak_far = list(map(fft_to_amplitude_band, weak_far))
+    print(classification_report(testY, predY))
+    # ------- Strong distance test end --------
 
-# for item in amp_strong_close: plt.plot(item)
-# plt.show()
-# for item in amp_weak_mid: plt.plot(item)
-# plt.show()
-# for item in amp_weak_far: plt.plot(item)
-# plt.show()
+    # ------- Strong distance test --------
+    weak_close = read_from_file("weak_close")
+    weak_mid = read_from_file("weak_mid")
+    weak_far = read_from_file("weak_far")
 
-X = amp_strong_close + amp_weak_mid + amp_weak_far
-Y = ["close"] * len(amp_strong_close) + ["mid"] * len(amp_weak_mid) + ["far"] * len(amp_weak_far)
+    amp_weak_close = list(map(fft_to_amplitude_band, weak_close))
+    amp_weak_mid = list(map(fft_to_amplitude_band, weak_mid))
+    amp_weak_far = list(map(fft_to_amplitude_band, weak_far))
 
-trainX, testX, trainY, testY = train_test_split(X, Y, shuffle=True, test_size=0.3)
+    # for item in amp_strong_close: plt.plot(item)
+    # plt.show()
+    # for item in amp_weak_mid: plt.plot(item)
+    # plt.show()
+    # for item in amp_weak_far: plt.plot(item)
+    # plt.show()
 
-pca = PCA(50)
-trainX = pca.fit_transform(trainX)
-testX = pca.transform(testX)
+    X = amp_strong_close + amp_weak_mid + amp_weak_far
+    Y = ["close"] * len(amp_strong_close) + ["mid"] * len(amp_weak_mid) + ["far"] * len(amp_weak_far)
 
-model = MLPClassifier(solver="lbfgs", max_iter=3000)
-model.fit(trainX, trainY)
-predY = model.predict(testX)
+    trainX, testX, trainY, testY = train_test_split(X, Y, shuffle=True, test_size=0.3)
 
-# print(classification_report(testY, predY))
+    pca = PCA(50)
+    trainX = pca.fit_transform(trainX)
+    testX = pca.transform(testX)
 
-print(classification_report(testY, predY))
-# ------- Strong distance test end --------
+    model = MLPClassifier(solver="lbfgs", max_iter=3000)
+    model.fit(trainX, trainY)
+    predY = model.predict(testX)
+
+    # print(classification_report(testY, predY))
+
+    print(classification_report(testY, predY))
+    # ------- Strong distance test end --------
